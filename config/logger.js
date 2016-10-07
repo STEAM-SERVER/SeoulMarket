@@ -1,6 +1,8 @@
 var winston = require('winston');
 var DailyRotateFile = require('winston-daily-rotate-file');
 var path = require('path');
+
+//timezone 에 관련된 모듈.
 var moment = require('moment-timezone');
 var timeZone = "Asia/Seoul";
 
