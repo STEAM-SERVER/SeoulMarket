@@ -19,6 +19,8 @@
     "morgan": "~1.6.1",
     "mysql": "^2.11.1",
     "passport": "^0.3.2",
+    "passport-facebook": "^2.1.1",
+    "passport-facebook-token": "^3.3.0",
     "passport-kakao": "0.0.4",
     "passport-kakao-token": "0.0.4",
     "redis": "^2.6.2",

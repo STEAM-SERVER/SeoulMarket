@@ -12,6 +12,7 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
+//FIXME : 리눅스업로드시 80번포트로 변경해야함.
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
