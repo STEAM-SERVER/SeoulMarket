@@ -16,6 +16,7 @@ var redisStore = require('connect-redis')(session);
 
 var routes = require('./routes/index');
 var auth = require('./routes/auth');
+var main = require('./routes/main');
 
 var app = express();
 
@@ -56,6 +57,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/auth', auth);
+app.use('/main', main);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
