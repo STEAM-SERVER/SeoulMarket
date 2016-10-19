@@ -52,7 +52,7 @@ passport.use(new KaKoTokenStrategy({
 }));
 
 //facebook passport 셋팅
-/*passport.use(new FacebookStrategy({
+passport.use(new FacebookStrategy({
         clientID: process.env.FACEBOOK_APP_ID,
         clientSecret: process.env.FACEBOOK_APP_SECRET,
         callbackURL: process.env.FACEBOOK_CALLBACK_URL,
@@ -79,7 +79,7 @@ passport.use(new FacebookTokenStrategy({
         return done(null, user);
     });
 }));
-*/
+
 
 //FIXME : reg_Token 받아서 저장하는거 따로 만들어줘야함.(카카오 && 페이스북)
 
@@ -108,26 +108,30 @@ router.get('/kakao/token', passport.authenticate('kakao-token'), function (req, 
 
 
 // facebook callback url : 안드로이드가없어서 Token을 받아오기위한 TEST URL
-/*router.get('/facebook', passport.authenticate('facebook', {scope: ['email']}));
+router.get('/facebook', passport.authenticate('facebook', {scope: ['email']}));
 router.get('/facebook/callback', passport.authenticate('facebook'), function (req, res, next) {
     res.send({message: 'facebook callback'});
 });
-*/
+
 // facebook 로그인
 // POST /auth/facebook/token 형식으로넘겨줘야함
 // body에 실어서 access_token = ?
-/*router.post('/facebook/token', passport.authenticate('facebook-token', {scope: ['email']}), function (req, res, next) {
-    var message = '페이스북로그인 실패';
-    if (req.user) {
-        message = '페이스북로그인 성공'
+router.post('/facebook/token', passport.authenticate('facebook-token', {scope: ['email']}), function (req, res, next) {
+    if (req.user)
+        res.send({
+            result: {
+                message: 'Success'
+            }
+        });
+    else {
+        res.send({
+            result : {
+                message : 'Fail'
+            }
+        });
     }
-    res.send({
-        result: {
-            message: message
-        }
-    });
 });
-*/
+
 //로그아웃
 router.get('/logout', function (req, res, next) {
     req.logout();

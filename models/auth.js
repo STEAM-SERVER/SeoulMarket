@@ -1,7 +1,7 @@
 var dbPool = require('../models/common').dbPool;
 
 function findCustomer(customerId, callback) {
-    var sql = 'SELECT idx, email, kakaoid FROM User WHERE idx = ?';
+    var sql = 'SELECT user_idx, user_kakaoid , user_facebookid FROM User WHERE user_idx = ?';
     dbPool.getConnection(function(err, dbConn) {
         if (err) {
             return callback(err);
@@ -23,10 +23,9 @@ function findCustomer(customerId, callback) {
 }
 
 //facebook로그인 관련함수
-/*
 function facebookFindOrCreate(profile, callback) {
-    var sql_facebookid = "select idx, email, facebookid from user where facebookid = ?";
-    var sql_insert_facebookid = "insert into user(facebookid) value (?)";
+    var sql_facebookid = "select user_idx, user_facebookid from User where user_facebookid = ?";
+    var sql_insert_facebookid = "insert into User(user_facebookid) value (?)";
 
     dbPool.getConnection(function(err, dbConn){
         if (err) {
@@ -41,8 +40,8 @@ function facebookFindOrCreate(profile, callback) {
             if (results.length !== 0) {
                 dbConn.release();
                 var user = {};
-                user.id = results[0].idx;
-                user.facebookid = results[0].facebookid;
+                user.id = results[0].user_idx;
+                user.facebookid = results[0].user_facebookid;
                 return callback(null, user);
             }
 
@@ -60,11 +59,11 @@ function facebookFindOrCreate(profile, callback) {
         });
     });
 }
-*/
+
 //kakao로그인관련함수
 function kakaoFindOrCreate(profile, callback) {
-    var sql_kakaoid = "select idx, email, kakaoid from User where kakaoid = ?";
-    var sql_insert_kakaoid = "insert into User(kakaoid) value (?)";
+    var sql_kakaoid = "select user_idx, user_kakaoid from User where user_kakaoid = ?";
+    var sql_insert_kakaoid = "insert into User(user_kakaoid) value (?)";
 
     dbPool.getConnection(function(err, dbConn){
         if (err) {
@@ -78,8 +77,8 @@ function kakaoFindOrCreate(profile, callback) {
             if (results.length !== 0) {
                 dbConn.release();
                 var user = {};
-                user.id = results[0].idx;
-                user.kakaoid = results[0].kakaoid;
+                user.id = results[0].user_idx;
+                user.kakaoid = results[0].user_kakaoid;
                 return callback(null, user);
             }
 
@@ -99,6 +98,6 @@ function kakaoFindOrCreate(profile, callback) {
 }
 
 module.exports.findCustomer = findCustomer;
-//module.exports.facebookFindOrCreate = facebookFindOrCreate;
+module.exports.facebookFindOrCreate = facebookFindOrCreate;
 module.exports.kakaoFindOrCreate = kakaoFindOrCreate;
 
