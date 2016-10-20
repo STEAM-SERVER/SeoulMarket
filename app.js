@@ -4,7 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
+var config = require("./config/config");
 //세션과 인증
 var session = require('express-session');
 var passport = require('passport');
@@ -32,10 +32,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: config.SESSION_SECRET,
   //store로 redis를 사용하겠다는 이야기
   store: new redisStore({
-    host: "127.0.0.1",
+    host: "localhost",
     port: 6379,
     client: redisClient
   }),
