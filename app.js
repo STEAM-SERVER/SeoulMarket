@@ -18,6 +18,7 @@ var routes = require('./routes/index');
 var auth = require('./routes/auth');
 var main = require('./routes/main');
 var me = require('./routes/me');
+var connect = require('./routes/connect');
 
 var app = express();
 
@@ -56,10 +57,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// images라는 마운트포인트에 static한 서비스를 제공하겠다는 의미다.
+app.use('/images', express.static(path.join(__dirname, 'uploads/images')));
+
 app.use('/', routes);
 app.use('/auth', auth);
 app.use('/main', main);
 app.use('/me', me);
+app.use('/connect', connect);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -75,7 +80,9 @@ app.use(function(req, res, next) {
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    res.render('error', {
+    console.log(err);
+    console.log(err.message);
+    res.send({
       message: err.message,
       error: err
     });
@@ -86,7 +93,9 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
-  res.render('error', {
+  console.log(err);
+  console.log(err.message);
+  res.send({
     message: err.message,
     error: {}
   });
