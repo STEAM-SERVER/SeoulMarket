@@ -14,6 +14,7 @@ var myConfig = require('../config/myConfig');
 
 //새션값에 관련된 함수.
 passport.serializeUser(function (user, done) {
+    console.log(user);
     done(null, user.id);
 });
 passport.deserializeUser(function (id, done) {
@@ -95,13 +96,13 @@ router.get('/kakao/token', passport.authenticate('kakao-token'), function (req, 
     if (req.user)
         res.send({
             result: {
-                message: '카카오로그인 성공'
+                message: 'Success'
             }
         });
     else {
         res.send({
             result : {
-                message : '카카오로그인실패'
+                message : 'Fail'
             }
         });
     }

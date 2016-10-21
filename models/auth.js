@@ -13,7 +13,7 @@ function findCustomer(customerId, callback) {
             }
             var user = {};
             if(results[0]){
-                user.id = results[0].idx;
+                user.id = results[0].user_idx;
                 user.name = results[0].name;
                 user.email = results[0].email;
             }
