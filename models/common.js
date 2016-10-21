@@ -1,6 +1,6 @@
 var mysql = require('mysql');
 var logger = require('../config/logger');
-var dbPoolConfig = require('../config/config').dbPoolConfig;
+var dbPoolConfig = require('../config/myConfig').dbPoolConfig;
 var dbPool = mysql.createPool(dbPoolConfig);
 
 dbPool.logStatus = function() {
