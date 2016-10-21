@@ -10,6 +10,7 @@ var FacebookTokenStrategy = require('passport-facebook-token');
 
 var Auth = require('../models/auth');
 var router = express.Router();
+var myConfig = require('../config/myConfig');
 
 //새션값에 관련된 함수.
 passport.serializeUser(function (user, done) {
@@ -26,8 +27,8 @@ passport.deserializeUser(function (id, done) {
 
 //kakao passport 셋팅.
 passport.use(new KakaoStrategy({
-        clientID : process.env.KAKAO_APP_ID,
-        callbackURL : process.env.KAKAO_CALLBACK_URL,
+        clientID : myConfig.KAKAO_APP_ID,
+        callbackURL : myConfig.KAKAO_CALLBACK_URL,
     },
     function(accessToken, refreshToken, profile, done){
         // 사용자의 정보는 profile에 들어있다.
@@ -41,7 +42,7 @@ passport.use(new KakaoStrategy({
         console.log('accessToken : ' +accessToken);
     }));
 passport.use(new KaKoTokenStrategy({
-    clientID: process.env.KAKAO_APP_ID,
+    clientID: myConfig.KAKAO_APP_ID,
 }, function (accessToken, refreshToken, profile, done) {
     Auth.kakaoFindOrCreate(profile, function (err, user) {
         if (err) {
@@ -53,9 +54,9 @@ passport.use(new KaKoTokenStrategy({
 
 //facebook passport 셋팅
 passport.use(new FacebookStrategy({
-        clientID: process.env.FACEBOOK_APP_ID,
-        clientSecret: process.env.FACEBOOK_APP_SECRET,
-        callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+        clientID: myConfig.FACEBOOK_APP_ID,
+        clientSecret: myConfig.FACEBOOK_APP_SECRET,
+        callbackURL: myConfig.FACEBOOK_CALLBACK_URL,
         // profileFields: ['id', 'displayName', 'name', 'gender', 'profileUrl', 'photos', 'emails']
         profileFields: ['id', 'displayName', 'name']
     },
@@ -69,8 +70,8 @@ passport.use(new FacebookStrategy({
         });
     }));
 passport.use(new FacebookTokenStrategy({
-    clientID: process.env.FACEBOOK_APP_ID,
-    clientSecret: process.env.FACEBOOK_APP_SECRET
+    clientID: myConfig.FACEBOOK_APP_ID,
+    clientSecret: myConfig.FACEBOOK_APP_SECRET
 }, function (accessToken, refreshToken, profile, done) {
     Auth.facebookFindOrCreate(profile, function (err, user) {
         if (err) {
