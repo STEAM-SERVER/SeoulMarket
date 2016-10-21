@@ -1,6 +1,5 @@
 // 로그인이 안되어 있으면 돌려보내는 함수
 function isAuthenticated(req, res, next) {
-    console.log(req.user);
     if (!req.user) {
         return res.status(401).send({
             message: 'login required'

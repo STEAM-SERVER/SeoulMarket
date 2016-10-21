@@ -10,7 +10,6 @@ var FacebookTokenStrategy = require('passport-facebook-token');
 
 var Auth = require('../models/auth');
 var router = express.Router();
-var config = require('../config/config');
 
 //새션값에 관련된 함수.
 passport.serializeUser(function (user, done) {
@@ -27,8 +26,8 @@ passport.deserializeUser(function (id, done) {
 
 //kakao passport 셋팅.
 passport.use(new KakaoStrategy({
-        clientID : config.KAKAO_APP_ID,
-        callbackURL : config.KAKAO_CALLBACK_URL,
+        clientID : process.env.KAKAO_APP_ID,
+        callbackURL : process.env.KAKAO_CALLBACK_URL,
     },
     function(accessToken, refreshToken, profile, done){
         // 사용자의 정보는 profile에 들어있다.
@@ -42,7 +41,7 @@ passport.use(new KakaoStrategy({
         console.log('accessToken : ' +accessToken);
     }));
 passport.use(new KaKoTokenStrategy({
-    clientID: config.KAKAO_APP_ID,
+    clientID: process.env.KAKAO_APP_ID,
 }, function (accessToken, refreshToken, profile, done) {
     Auth.kakaoFindOrCreate(profile, function (err, user) {
         if (err) {
@@ -54,9 +53,9 @@ passport.use(new KaKoTokenStrategy({
 
 //facebook passport 셋팅
 passport.use(new FacebookStrategy({
-        clientID: config.FACEBOOK_APP_ID,
-        clientSecret: config.FACEBOOK_APP_SECRET,
-        callbackURL: config.FACEBOOK_CALLBACK_URL,
+        clientID: process.env.FACEBOOK_APP_ID,
+        clientSecret: process.env.FACEBOOK_APP_SECRET,
+        callbackURL: process.env.FACEBOOK_CALLBACK_URL,
         // profileFields: ['id', 'displayName', 'name', 'gender', 'profileUrl', 'photos', 'emails']
         profileFields: ['id', 'displayName', 'name']
     },
@@ -70,8 +69,8 @@ passport.use(new FacebookStrategy({
         });
     }));
 passport.use(new FacebookTokenStrategy({
-    clientID: config.FACEBOOK_APP_ID,
-    clientSecret: config.FACEBOOK_APP_SECRET
+    clientID: process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET
 }, function (accessToken, refreshToken, profile, done) {
     Auth.facebookFindOrCreate(profile, function (err, user) {
         if (err) {
@@ -92,13 +91,13 @@ router.get('/kakao/callback', passport.authenticate('kakao'), function (req, res
 // kakao 로그인시 사용하는 API
 // GET /auth/kakao/token?access_token=[ACCESS_TOKEN] 형식으로 넘겨줘야함.
 router.get('/kakao/token', passport.authenticate('kakao-token'), function (req, res, next) {
-    if (req.user) {
+    if (req.user)
         res.send({
             result: {
                 message: '카카오로그인 성공'
             }
         });
-    } else {
+    else {
         res.send({
             result : {
                 message : '카카오로그인실패'
