@@ -4,17 +4,19 @@ var express = require('express');
 var router = express.Router();
 
 //닉네임 중복확인
+
+//    ~~?nickname=필주
 router.get('/', function(req, res, next) {
     if(req.query.nickname) {
         var nickname = req.query.nickname;
+        console.log(nickname);
         Me.nicknameCheck(nickname, function(err, result) {
             if(err) {
                 return next(err);
             }
             res.send({
                 result : {
-                    message : "Success",
-                    state : result
+                    message : result
                 }
             });
         });

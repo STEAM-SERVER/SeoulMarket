@@ -3,7 +3,7 @@ var dbPool = require('../models/common').dbPool;
 //닉네임 중복확인함수
 function nicknameCheck(nickname, callback) {
     var sql_select_nickname = "SELECT user_nickname FROM User WHERE user_nickname = ?";
-    var check = "Ok";
+    var check = "Success";
     dbPool.getConnection(function(err, dbConn) {
         dbConn.query(sql_select_nickname, [nickname], function(err, result) {
             dbConn.release();
@@ -11,7 +11,7 @@ function nicknameCheck(nickname, callback) {
                 return callback(err);
             }
             if(result[0]) {
-                check="No";
+                check="Fail";
             }
             callback(null, check);
         });
