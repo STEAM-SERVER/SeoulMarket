@@ -34,9 +34,23 @@ router.get('/', function(req, res, next) {
     }
 });
 
+router.get('/:id', function(req, res, next) {
+    var info = {};
+    info.market_id = req.params.id;
+    info.user_id = req.user.id;
 
+    Main.market_detail(info, function(err, market, image, review) {
+        if (err) {
+            return next(err);
+        }
 
-//main?currentPage=&searchAddress=
+        market.image = image;
+        market.review = review;
+        res.send({
+            result : market
+        })
+    });
+});
 
 
 module.exports = router;

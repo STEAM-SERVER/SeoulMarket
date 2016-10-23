@@ -9,7 +9,6 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
     if(req.query.nickname) {
         var nickname = req.query.nickname;
-        console.log(nickname);
         Me.nicknameCheck(nickname, function(err, result) {
             if(err) {
                 return next(err);

@@ -33,5 +33,9 @@ function nickname(user, callback) {
 }
 
 
+function marketInfo(market_id, callback) {
+
+}
+
 module.exports.nickname = nickname;
 module.exports.nicknameCheck = nicknameCheck;
