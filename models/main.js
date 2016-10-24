@@ -2,10 +2,10 @@ var dbPool = require('../models/common').dbPool;
 var async = require('async');
 
 
-//FIXME : 좋아요정보수정해야함!
+//마켓메인리스트보기
 function list(currentPage, callback) {
     var sql_select_main = "SELECT M.market_idx, M.market_address,  M.market_name, "+
-                          "I.image_url, I.image_type " +
+                          "I.image_url, I.image_type, TO_DAYS(M.market_enddate)-TO_DAYS(NOW()) market_state " +
                           "FROM Market M LEFT JOIN Image I ON (M.market_idx = I.market_idx) " +
                           "WHERE I.image_type = 1 LIMIT ?, 10 ";
 
@@ -25,7 +25,7 @@ function list(currentPage, callback) {
                     idx : item.market_idx,
                     address : item.market_address,
                     state : item.market_state,
-                    image : "http://192.168.10.21:3000/images/"+item.image_url,
+                    image : "http://localhost:3000/images/"+item.image_url,
                     marketname : item.market_name,
                 });
                 cb(null, null);
@@ -44,16 +44,22 @@ function search(info, callback) {
 
 }
 
+//date_format(convert_tz(r.review_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s')
+//상세정보
 function market_detail(info, callback) {
     var sql_select_market_detail = "SELECT m.market_idx, u.user_nickname, m.market_host, m.market_address, "+
                                     "TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state,"+
                                     "X(market_point) market_latitude, Y(market_point) market_longitude, "+
-                                    "m.market_name, m.market_url, m.market_count, m.market_startdate, m.market_enddate, m.market_contents, good.good_idx 'favorite'"+
+                                    "m.market_name, m.market_url, m.market_count, " +
+                                    "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') market_startdate, " +
+                                    "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') market_enddate, " +
+                                    "m.market_contents, good.good_idx 'favorite'"+
                                     "FROM Market m JOIN User u ON(u.user_idx = m.user_idx) "+
                                     "LEFT JOIN (SELECT mhu.good_idx, mhu.market_idx, mhu.user_idx FROM Market_has_User mhu WHERE mhu.user_idx=?) good ON(good.market_idx = m.market_idx) "+
                                     "WHERE m.market_idx=?";
     var sql_select_img = "SELECT image_url, image_type FROM Image i WHERE market_idx = ?";
-    var sql_select_review = "SELECT r.review_idx, r.review_contents, r.review_uploadtime, r.review_img, u.user_nickname "+
+    var sql_select_review = "SELECT r.review_idx, r.review_contents, r.review_img, u.user_nickname, " +
+                            "date_format(convert_tz(r.review_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') review_uploadtime "+
                             "FROM Review r JOIN User u ON(r.user_idx = u.user_idx) "+
                             "WHERE r.market_idx = ?";
     dbPool.getConnection(function(err, dbConn) {
@@ -88,7 +94,7 @@ function market_detail(info, callback) {
                 }
                 async.each(result, function(item, done) {
                     image.push({
-                        img_url : item.image_url
+                        img_url : 'http://localhost:3000/images/'+item.image_url
                     });
                     done(null, null);
                 }, function(err) {

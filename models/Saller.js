@@ -78,13 +78,11 @@ function saller_4(recruitment_idx, callback) {
             return callback(err);
         }
          var result_saller = {};
-         var result_reply= {};
         async.series([saller_select, reply_select],function(err, result) {
             dbConn.release();
             if (err) {
                 return callback(err);
             }
-            console.log(result_saller);
                 callback(null, result_saller);
         });
 
@@ -113,9 +111,9 @@ function saller_4(recruitment_idx, callback) {
 
 
 
-module.exports.saller_1=saller_1;
-module.exports.saller_2=saller_2;
-module.exports.saller_3=saller_3;
-module.exports.saller_4=saller_4;
+module.exports.saller_1 = saller_1;
+module.exports.saller_2 = saller_2;
+module.exports.saller_3 = saller_3;
+module.exports.saller_4 = saller_4;
 
    

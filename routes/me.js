@@ -1,5 +1,7 @@
 var Me = require('../models/me');
 var Saller = require('../models/Saller');
+
+var async = require('async');
 var path = require('path');
 var formidable = require('formidable'); //file upload를 위한 모듈
 
@@ -39,6 +41,58 @@ router.put('/', function(req, res, next) {
             result : {
                 message : "Success"
             }
+        });
+    });
+});
+
+//마켓등록!
+router.post('/market', function(req, res, next) {
+    var market = {};
+    market.imgPath = [];
+    var form = new formidable.IncomingForm();
+    form.uploadDir = path.join(__dirname, '../uploads/images');
+    form.keepExtensions = true;
+    form.multiples = true;
+
+    form.parse(req, function (err, fields, files) {
+
+        market.user_idx = req.user.id;
+        market.market_name = fields.market_name;
+        market.market_address = fields.market_address;
+        market.market_host = fields.market_host;
+        market.market_contents = fields.market_contents;
+        market.market_tag = fields.market_tag;
+        market.longitude = fields.market_longitude; //경도
+        market.latitude = fields.market_latitude;   //위도
+        market.market_tell = fields.market_tell;
+        market.market_startdate = fields.market_startdate;
+        market.market_enddate = fields.market_enddate;
+        market.market_url = fields.market_url;
+
+        if (files.image instanceof Array) {  //사진 여러장올릴경우
+            async.each(files.image, function(item, done) {
+                var filename = path.basename(item.path);
+                market.imgPath.push(filename);
+            }, function(err) {
+                if (err) {
+                    next(err);
+                }
+            });
+        } else if (!files['image']) { //사진이 없을경우
+            //없을경우 코드 수정.
+        } else { //사진 한장일경우
+            var filename = path.basename(files.image.path);
+            market.imgPath.push(filename);
+        }
+        Me.marketUploads(market, function(err, result) {
+            if (err) {
+                return next(err);
+            }
+            res.send({
+                result : {
+                    messgae : "Success"
+                }
+            });
         });
     });
 });

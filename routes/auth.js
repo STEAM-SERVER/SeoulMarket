@@ -139,7 +139,7 @@ router.get('/logout', function (req, res, next) {
     req.logout();
     res.send({
         result: {
-            message : '로그아웃 완료.'
+            message: 'Success'
         }
     });
 });
