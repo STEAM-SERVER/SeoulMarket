@@ -14,7 +14,7 @@ var myConfig = require('../config/myConfig');
 
 //새션값에 관련된 함수.
 passport.serializeUser(function (user, done) {
-    console.log(user);
+    // console.log(user);
     done(null, user.id);
 });
 passport.deserializeUser(function (id, done) {
