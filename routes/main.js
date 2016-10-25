@@ -91,11 +91,30 @@ router.get('/searchname/:name', function (req, res, next) {
 
 
 //좋아요
+//로그인한유저만
 router.put('/:market_idx', function (req, res, next) {
     var info = {};
     info.market_idx = req.params.market_idx;
     info.user_idx = req.user.id;
     Main.good(info, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            result : {
+                message : "Success"
+            }
+        });
+    });
+});
+
+//좋아요취소
+//로그인한유저만
+router.delete('/:market_idx', function (req, res, next) {
+    var info = {};
+    info.market_idx = req.params.market_idx;
+    info.user_idx = req.user.id;
+    Main.goodCancel(info, function(err, result) {
         if (err) {
             return next(err);
         }

@@ -122,13 +122,17 @@ function saller_4(recruitment_idx, callback) {
     });
 }
 
+//내가작성한 셀러 모집그보기
 function mySaller(info, callback) {
-    var sql_select_mySaller = "SELECT R.recruitment_idx, R.recruitment_title, R.recruitment_image, U.user_nickname, "+
-                              "date_format(convert_tz(R.recruitment_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') recruitment_uploadtime "+
-                              "FROM Recruitment R "+
-                              "JOIN User U ON (U.user_idx= R.User_user_idx) "+
-                              "WHERE R.User_user_idx = ? "+
-                              "ORDER BY recruitment_uploadtime DESC LIMIT ?, 10 ";
+    var sql_select_mySaller = "SELECT R.recruitment_idx, R.recruitment_title, R.recruitment_image, U.user_nickname, a.r_count, "+
+    "date_format(convert_tz(R.recruitment_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') recruitment_uploadtime "+
+    "FROM Recruitment R "+
+    "JOIN User U ON (U.user_idx= R.User_user_idx) "+
+    "LEFT JOIN (SELECT Rct.recruitment_idx, COUNT(Rct.recruitment_idx) r_count "+
+    "FROM Recruitment Rct JOIN Reply R ON (Rct.recruitment_idx = R.Recruitment_recruitment_idx) "+
+    "GROUP BY Rct.recruitment_idx) a ON (a.recruitment_idx = R.recruitment_idx) "+
+    "WHERE R.User_user_idx = ? "+
+    "ORDER BY recruitment_uploadtime DESC LIMIT ?, 10"
 
     dbPool.getConnection(function(err, dbConn) {
         if (err) {
@@ -146,7 +150,8 @@ function mySaller(info, callback) {
                     recruitment_title : item.recruitment_title,
                     recruitment_image : item.recruitment_image && ("http://localhost:3000"+item.recruitment_image),
                     user_nickname : item.user_nickname,
-                    recruitment_uploadtime : item.recruitment_uploadtime
+                    recruitment_uploadtime : item.recruitment_uploadtime,
+                    count : item.r_count || 0
                 });
                 cb(null, null);
             }, function(err) {

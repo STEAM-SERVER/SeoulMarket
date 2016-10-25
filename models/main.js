@@ -210,8 +210,8 @@ function market_detail(info, callback) {
     });
 }
 
+//좋아요
 function good(info, callback) {
-    console.log(info);
     var sql_update_marketCount = "UPDATE Market SET market_count = market_count+1 WHERE market_idx = ? ";
     var sql_insert_marketHasUser = "INSERT INTO Market_has_User(market_idx, user_idx) VALUES(?, ?);";
     dbPool.getConnection(function(err, dbConn) {
@@ -256,8 +256,55 @@ function good(info, callback) {
 }
 
 
+//좋아요취소
+function goodCancel(info, callback) {
+    var sql_update_marketCount = "UPDATE Market SET market_count = market_count-1 WHERE market_idx = ? ";
+    var sql_delete_marketHasUser = "DELETE FROM Market_has_User WHERE market_idx = ? AND user_idx = ?";
+    dbPool.getConnection(function(err, dbConn) {
+        if (err) {
+            return callback(err);
+        }
+        dbConn.beginTransaction(function(err) {
+            if (err) {
+                return callback(err);
+            }
+            async.series([update_marketCount, delete_marketHasUser], function(err, results) {
+                if (err) {
+                    return dbConn.rollback(function() {
+                        dbConn.release();
+                        callback(err);
+                    });
+                }
+                dbConn.commit(function() {
+                    dbConn.release();
+                    callback(null, results);
+                });
+            });
+
+            function update_marketCount(callback) {
+                dbConn.query(sql_update_marketCount, [info.market_idx], function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, null);
+                });
+            }
+            function delete_marketHasUser(callback) {
+                dbConn.query(sql_delete_marketHasUser, [info.market_idx, info.user_idx], function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, null);
+                });
+            }
+        });
+    });
+}
+
+
 module.exports.list = list;
 module.exports.search = search;
 module.exports.market_detail = market_detail;
 module.exports.searchName = searchName;
 module.exports.good = good;
+module.exports.goodCancel = goodCancel;
