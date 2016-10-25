@@ -5,34 +5,21 @@ var express = require('express');
 var router = express.Router();
 
 router.get('/', function(req, res, next) {
+    var info ={};
     var currentPage = (10*parseInt(req.query.currentPage)) || 0;
-    if (!req.query.searchAddress) {
-        Main.list(currentPage, function(err, result) {
-            if(err) {
-                return next(err);
-            }
-            res.send({
-                result : result
-            });
-        });
-    } else if(req.query.searchAddress) {
-        var info ={};
-        info.currentPage = currentPage;
-        info.address = req.query.searchAddress;
+    info.currentPage = currentPage;
 
-        Main.search(info, function(err, result) {
-            if(err) {
-                return next(err);
-            }
-            res.send({
-                result : result
-            });
+    Main.list(currentPage, function(err, result) {
+        if(err) {
+            return next(err);
+        }
+        res.send({
+            result : result
         });
-    } else {
-        next(new Error('404 Not found'));
-    }
+    });
 });
 
+//마켓 상세보기
 router.get('/:id', function(req, res, next) {
     var info = {};
     info.market_id = req.params.id;
@@ -41,7 +28,6 @@ router.get('/:id', function(req, res, next) {
     } else {
         info.user_id = req.user.id;
     }
-
 
     Main.market_detail(info, function(err, market, image, review) {
         if (err) {
@@ -64,5 +50,61 @@ router.get('/:id', function(req, res, next) {
     });
 });
 
+//위치, 날짜검색
+router.get('/search/:address/:startdate/:enddate', function(req,res,next){
+    var currentPage = (10*parseInt(req.query.currentPage)) || 0;
+
+    var search = {};
+    // :address = , 구분 예시) 강남, 광진
+    // search.address = req.params.address != '*'? req.params.address.replace(',', '|') : undefined;
+    search.address = req.params.address.replace(',','|');
+    search.startdate = req.params.startdate;
+    search.enddate = req.params.enddate;
+    search.currentPage= currentPage;
+
+    Main.search(search, function(err, result){
+        if(err){
+            return next(err);
+        }
+        res.send({ // 값이 안담겨
+            result : result
+        });
+    });
+});
+
+//이름검색
+router.get('/searchname/:name', function (req, res, next) {
+    var currentPage = (10*parseInt(req.query.currentPage)) || 0;
+    var search={};
+    search.name = req.params.name;
+    search.currentPage = currentPage;
+
+    Main.searchName(search, function(err, result){
+        if(err){
+            return next(err);
+        }
+        res.send({
+            result : result
+        });
+    });
+});
+
+
+//좋아요
+router.put('/:market_idx', function (req, res, next) {
+    var info = {};
+    info.market_idx = req.params.market_idx;
+    info.user_idx = req.user.id;
+    Main.good(info, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            result : {
+                message : "Success"
+            }
+        });
+    });
+});
 
 module.exports = router;

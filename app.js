@@ -37,7 +37,7 @@ app.use(session({
   secret: myConfig.SESSION_SECRET,
   //store로 redis를 사용하겠다는 이야기
   store: new redisStore({
-    host: "localhost",
+    host: "127.0.0.1",
     port: 6379,
     client: redisClient
   }),

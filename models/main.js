@@ -39,20 +39,99 @@ function list(currentPage, callback) {
     });
 }
 
-//FIXME : 위치검색함수 수정사항
-function search(info, callback) {
+// 위치, 날짜검색
+//FIXME : 수정해야함(쿼리)
+function search(search, callback){
 
+    var where_sql = '';
+    // var sql_parameter = [];
+
+    // 주소 특정검색 -> 날짜 전체
+    if (search.address != '*'){
+        where_sql = where_sql +`WHERE m.market_address REGEXP '${search.address}' `;
+        // sql_parameter.push(search.address);
+    }
+
+    if (search.startdate != '*'){
+        if (search.enddate != '*'){
+            where_sql = where_sql +`AND (m.market_startdate ='${search.startdate}' and m.market_enddate ='${search.enddate}') `;
+            // sql_parameter.push(search.startdate);
+            // sql_parameter.push(search.enddate);
+        }
+        else{
+            where_sql = where_sql +`AND (m.market_startdate ='${search.startdate}') `;
+            // sql_parameter.push(search.startdate);
+        }
+    }
+
+    // var where_sql =  "WHERE m.market_address REGEXP '" + search.address + "' ";
+    // where_sql = `WHERE m.market_address REGEXP '${search.address}'`;
+    var state_sql = 'TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, ';
+
+    var sql = 'SELECT m.market_idx, m.market_address, '
+        + state_sql
+        + 'm.market_name, i.image_url, m.market_count, '
+        + 'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d %H:%i:%s") market_startdate, '
+        + 'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d %H:%i:%s") market_enddate '
+        + 'FROM Market m '
+        + 'LEFT JOIN Image i ON m.market_idx = i.image_idx '
+        + where_sql
+        + 'LIMIT ?, 10 ';
+
+    dbPool.getConnection(function(err, dbConn) {
+        if(err) {
+            return callback(err);
+        }
+        dbConn.query(sql, [search.currentPage], function (error, result) {
+            dbConn.release();
+            if(error) {
+                return callback(error);
+            }
+            callback(null, result);
+        });
+    });
 }
 
-//date_format(convert_tz(r.review_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s')
+//이름검색
+//FIXME : 수정해야함(쿼리)
+function searchName(search, callback){
+
+    var where_sql = `WHERE m.market_name REGEXP '${search.name}'`;
+    var state_sql = 'TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, ';
+
+    var sql = 'SELECT m.market_idx, m.market_address, '
+        + state_sql
+        + 'm.market_name, i.image_url, m.market_count, m.market_startdate, m.market_enddate '
+        + 'FROM Market m '
+        + 'LEFT JOIN Image i ON m.market_idx = i.image_idx '
+        + where_sql
+        + 'LIMIT ?, 10 ';
+
+    dbPool.getConnection(function(err, dbConn) {
+        dbConn.release();
+        if(err) {
+            return callback(err);
+        }
+        dbConn.query(sql, [search.currentPage], function (error, result) {
+            if(error) {
+                return callback(error);
+            }
+            callback(null, result);
+        });
+    });
+}
+
+
 //상세정보
 function market_detail(info, callback) {
-    var sql_select_market_detail = "SELECT m.market_idx, u.user_nickname, m.market_host, m.market_address, "+
+    var sql_select_market_detail = "SELECT m.market_idx, u.user_nickname, m.market_host, m.market_address, m.market_tag, "+
                                     "TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state,"+
                                     "X(market_point) market_latitude, Y(market_point) market_longitude, "+
                                     "m.market_name, m.market_url, m.market_count, " +
-                                    "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') market_startdate, " +
-                                    "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') market_enddate, " +
+                                    "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%H:%i:%s') market_openTime, "+
+                                    "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%H:%i:%s') market_endTime, "+
+                                    "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') market_startdate, " +
+                                    "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_enddate, " +
                                     "m.market_contents, good.good_idx 'favorite'"+
                                     "FROM Market m JOIN User u ON(u.user_idx = m.user_idx) "+
                                     "LEFT JOIN (SELECT mhu.good_idx, mhu.market_idx, mhu.user_idx FROM Market_has_User mhu WHERE mhu.user_idx=?) good ON(good.market_idx = m.market_idx) "+
@@ -105,6 +184,7 @@ function market_detail(info, callback) {
                 callback(null, result);
             });
         }
+
         function market_review(callback){
             dbConn.query(sql_select_review, [info.market_id], function(err, result) {
                 if(err) {
@@ -130,11 +210,54 @@ function market_detail(info, callback) {
     });
 }
 
+function good(info, callback) {
+    console.log(info);
+    var sql_update_marketCount = "UPDATE Market SET market_count = market_count+1 WHERE market_idx = ? ";
+    var sql_insert_marketHasUser = "INSERT INTO Market_has_User(market_idx, user_idx) VALUES(?, ?);";
+    dbPool.getConnection(function(err, dbConn) {
+        if (err) {
+            return callback(err);
+        }
+        dbConn.beginTransaction(function(err) {
+            if (err) {
+                return callback(err);
+            }
+            async.series([update_marketCount, insert_marketHasUser], function(err, results) {
+                if (err) {
+                    return dbConn.rollback(function() {
+                        dbConn.release();
+                        callback(err);
+                    });
+                }
+                dbConn.commit(function() {
+                    dbConn.release();
+                    callback(null, results);
+                });
+            });
 
-
-
+            function update_marketCount(callback) {
+                dbConn.query(sql_update_marketCount, [info.market_idx], function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, null);
+                });
+            }
+            function insert_marketHasUser(callback) {
+                dbConn.query(sql_insert_marketHasUser, [info.market_idx, info.user_idx], function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, null);
+                });
+            }
+        });
+    });
+}
 
 
 module.exports.list = list;
 module.exports.search = search;
 module.exports.market_detail = market_detail;
+module.exports.searchName = searchName;
+module.exports.good = good;
