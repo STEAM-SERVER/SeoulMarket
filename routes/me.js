@@ -97,6 +97,23 @@ router.post('/market', function(req, res, next) {
     });
 });
 
+//내가등록한마켓
+//로그인유저만.
+router.get('/market', function(req, res, next) {
+    var info ={};
+    var currentPage = (10*parseInt(req.query.currentPage)) || 0;
+    info.currentPage = currentPage;
+    info.user_idx = req.user.id;
+    Me.marketEnrollment(info, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+                result
+        });
+    });
+});
+
 //셀러모집 삽입 데이터
 router.post('/market/saller', function(req, res, next) {
     var saller_u = {};
