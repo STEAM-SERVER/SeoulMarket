@@ -20,24 +20,39 @@ function saller_1(saller_u, callback) {
 
 
 //셀러모집화면 최신순으로 목록 업로드
-
 function saller_2(currentPage, callback) {
-   var sql = 'SELECT R.recruitment_title, R.recruitment_image,R.recruitment_uploadtime, U.user_nickname '+
-             'FROM Recruitment R '+
-             'JOIN User U '+
-             'ON (U.user_idx= R.User_user_idx) '+
-             'ORDER BY recruitment_uploadtime DESC LIMIT ?, 10';
+   var sql = "SELECT R.recruitment_idx, R.recruitment_title, R.recruitment_image, U.user_nickname, "+
+             "date_format(convert_tz(R.recruitment_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') recruitment_uploadtime "+
+             "FROM Recruitment R "+
+             "JOIN User U ON (U.user_idx= R.User_user_idx) "+
+             "ORDER BY R.recruitment_idx DESC LIMIT ?, 10";
 
     dbPool.getConnection(function(err, dbConn) {
         if (err) {
             return callback(err);
         }
+        var saller = [];
         dbConn.query(sql, [currentPage], function(err, result) {
             dbConn.release();
             if(err) {
                 return callback(err);
             }
-            callback(null, result);
+
+            async.each(result, function(item, cb) {
+                saller.push({
+                    recruitment_idx : item.recruitment_idx,
+                    recruitment_title : item.recruitment_title,
+                    recruitment_image : item.recruitment_image && ("http://localhost:3000"+item.recruitment_image),
+                    user_nickname : item.user_nickname,
+                    recruitment_uploadtime : item.recruitment_uploadtime
+                });
+                cb(null, null);
+            }, function(err) {
+                if (err) {
+                    callback(err);
+                }
+            });
+            callback(null, saller);
         });
     });
 }
@@ -58,7 +73,6 @@ function saller_3(info, callback) {
         });
     });
 }
-
 
 
 //셀러모집 상세보기 SELECT 업로드
@@ -108,6 +122,42 @@ function saller_4(recruitment_idx, callback) {
     });
 }
 
+function mySaller(info, callback) {
+    var sql_select_mySaller = "SELECT R.recruitment_idx, R.recruitment_title, R.recruitment_image, U.user_nickname, "+
+                              "date_format(convert_tz(R.recruitment_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') recruitment_uploadtime "+
+                              "FROM Recruitment R "+
+                              "JOIN User U ON (U.user_idx= R.User_user_idx) "+
+                              "WHERE R.User_user_idx = ? "+
+                              "ORDER BY recruitment_uploadtime DESC LIMIT ?, 10 ";
+
+    dbPool.getConnection(function(err, dbConn) {
+        if (err) {
+            return callback(err);
+        }
+        var saller = [];
+        dbConn.query(sql_select_mySaller, [info.user_idx, info.currentPage], function(err, result) {
+            dbConn.release();
+            if(err) {
+                return callback(err);
+            }
+            async.each(result, function(item, cb) {
+                saller.push({
+                    recruitment_idx : item.recruitment_idx,
+                    recruitment_title : item.recruitment_title,
+                    recruitment_image : item.recruitment_image && ("http://localhost:3000"+item.recruitment_image),
+                    user_nickname : item.user_nickname,
+                    recruitment_uploadtime : item.recruitment_uploadtime
+                });
+                cb(null, null);
+            }, function(err) {
+                if (err) {
+                    callback(err);
+                }
+            });
+            callback(null, saller);
+        });
+    });
+}
 
 
 
@@ -115,5 +165,6 @@ module.exports.saller_1 = saller_1;
 module.exports.saller_2 = saller_2;
 module.exports.saller_3 = saller_3;
 module.exports.saller_4 = saller_4;
+module.exports.mySaller = mySaller;
 
    

@@ -114,6 +114,23 @@ router.get('/market', function(req, res, next) {
     });
 });
 
+//내가 좋아요한마켓보기
+//로그인유저만
+router.get('/market/good', function(req, res, next) {
+    var info ={};
+    var currentPage = (10*parseInt(req.query.currentPage)) || 0;
+    info.currentPage = currentPage;
+    info.user_idx = req.user.id;
+    Me.goodList(info, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            result
+        });
+    });
+});
+
 //셀러모집 삽입 데이터
 router.post('/market/saller', function(req, res, next) {
     var saller_u = {};
@@ -192,6 +209,23 @@ router.get('/market/saller/:id', function(req, res, next) {
         }
         res.send({
             result :  results
+        });
+    });
+});
+
+//내가작성한 물품|셀러 모집리스트
+//로그인필요
+router.get('/saller', function(req, res, next){
+    var info = {};
+    info.currentPage = (10*parseInt(req.query.currentPage)) || 0;
+    info.user_idx = req.user.id;
+
+    Saller.mySaller(info, function(err, reslut) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            result : reslut
         });
     });
 });

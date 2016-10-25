@@ -103,13 +103,15 @@ function marketUploads(marketinfo ,callback) {
     });
 }
 
+//내가등록한마켓보기
 function marketEnrollment(info, callback) {
     var sql_select_main = "SELECT M.market_idx, M.market_address,  M.market_name, I.image_url, M.market_count, "+
                           "TO_DAYS(M.market_enddate)-TO_DAYS(NOW()) market_state, "+
+                          "date_format(convert_tz(M.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') market_startdate, "+
+                          "date_format(convert_tz(M.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_enddate, "+
                           "I.image_type, M.user_idx "+
                           "FROM Market M JOIN Image I ON (M.market_idx = I.market_idx) "+
-                          "WHERE I.image_type = 1 AND M.user_idx = ? LIMIT ?, 10 ";
-
+                          "WHERE I.image_type = 1 AND M.user_idx = ? ORDER BY M.market_idx DESC LIMIT ?, 10 ";
     dbPool.getConnection(function(err, dbConn) {
         if (err) {
             return callback(err);
@@ -129,7 +131,9 @@ function marketEnrollment(info, callback) {
                     image : "http://localhost:3000/images/"+item.image_url,
                     marketname : item.market_name,
                     market_state : item.market_state,
-                    market_count : item.market_count
+                    market_count : item.market_count,
+                    market_startdate : item.market_startdate,
+                    market_enddate : item.market_enddate
                 });
                 cb(null, null);
             }, function(err) {
@@ -142,7 +146,55 @@ function marketEnrollment(info, callback) {
     });
 }
 
+//내가 좋아요한마켓보기
+function goodList(info, callback) {
+    var sql_select_main = "SELECT M.market_idx, M.market_address,  M.market_name, I.image_url, M.market_count, "+
+        "date_format(convert_tz(M.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') market_startdate, "+
+        "date_format(convert_tz(M.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_enddate, "+
+        "TO_DAYS(M.market_enddate)-TO_DAYS(NOW()) market_state, "+
+        "U.user_nickname, MhU.good_idx "+
+        "FROM Market M JOIN Image I ON (M.market_idx = I.market_idx) "+
+        "JOIN User U ON (U.user_idx = M.user_idx) "+
+        "JOIN Market_has_User MhU ON (MhU.market_idx = M.market_idx) "+
+        "WHERE I.image_type = 1 AND M.user_idx = ? ORDER BY MhU.good_idx DESC LIMIT ?, 10 ";
+    dbPool.getConnection(function(err, dbConn) {
+        if (err) {
+            return callback(err);
+        }
+        var list = [];
+        dbConn.query( sql_select_main, [info.user_idx, info.currentPage], function(err, result) {
+            dbConn.release();
+            if(err) {
+                return callback(err);
+            }
+            async.each(result, function(item, cb) {
+                list.push({
+                    user_nickname : item.user_nickname,
+                    idx : item.market_idx,
+                    address : item.market_address,
+                    state : item.market_state,
+                    image : "http://localhost:3000/images/"+item.image_url,
+                    marketname : item.market_name,
+                    market_state : item.market_state,
+                    market_count : item.market_count,
+                    market_startdate : item.market_startdate,
+                    market_enddate : item.market_enddate,
+                    favorite : 1
+                });
+                cb(null, null);
+            }, function(err) {
+                if(err) {
+                    return callback(null);
+                }
+            });
+            callback(null, list);
+        });
+    });
+}
+
+
 module.exports.nickname = nickname;
 module.exports.nicknameCheck = nicknameCheck;
 module.exports.marketUploads = marketUploads;
 module.exports.marketEnrollment = marketEnrollment;
+module.exports.goodList = goodList;
