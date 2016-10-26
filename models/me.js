@@ -150,7 +150,7 @@ function marketEnrollment(info, callback) {
 function goodList(info, callback) {
     var sql_select_main = "SELECT mhu.good_idx, m.market_idx, m.market_address, m.market_name, i.image_url, m.market_count, u.user_nickname, "+
                         "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') market_startdate, "+
-                        "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_endtdate, "+
+                        "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_enddate, "+
                         "TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state "+
                         "FROM Market_has_User mhu JOIN Market m ON (mhu.market_idx = m.market_idx) "+
                         "JOIN Image i ON (mhu.market_idx = i.market_idx) "+

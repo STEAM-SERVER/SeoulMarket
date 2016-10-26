@@ -76,13 +76,14 @@ function saller_3(info, callback) {
 
 
 //셀러모집 상세보기 SELECT 업로드
+//recruitment_uploadtime
 function saller_4(recruitment_idx, callback) {
-    var sql_1 = "SELECT R.recruitment_title, R.recruitment_image, R.recruitment_uploadtime, R.recruitment_contents,U.user_nickname "+
+    var sql_1 = "SELECT R.recruitment_title, R.recruitment_image, date_format(convert_tz(R.recruitment_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') recruitment_uploadtime, R.recruitment_contents,U.user_nickname "+
                 "FROM Recruitment R "+
                 "JOIN User U ON (U.user_idx= R.User_user_idx) "+
                 "WHERE R.recruitment_idx = ? ";
 
-    var sql_2 = "SELECT U.user_nickname,R.reply_uploadtime,R.reply_contents "+
+    var sql_2 = "SELECT U.user_nickname, date_format(convert_tz(R.reply_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') reply_uploadtime, R.reply_contents "+
                 "FROM Reply R "+
                 "JOIN User U ON (U.user_idx=R.user_user_idx) "+
                 "WHERE R.recruitment_recruitment_idx = ?";

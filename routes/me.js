@@ -195,7 +195,9 @@ router.post('/market/saller/:id/reply', function(req, res, next) {
             return next(err);
         }
         res.send({
-            result : "Success"
+            result : {
+                message : "Success"
+            }
         });
     });
 });
