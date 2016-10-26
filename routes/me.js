@@ -153,11 +153,18 @@ router.post('/market/saller', function(req, res, next) {
 
         //에러가 아닐시 saller_u fields 값을 추가
 
-        if (files.image) {  //이미지파일이 있을경우 saller_u.recruitment_image에 업로드될 파일의 이름 저장.
+
+        if (!files['image']) {
+            saller_u.recruitment_image = "";
+        } else {
             saller_u.recruitment_image = path.basename(files.image.path);
-        } else { //파일이 없을경우 image값은 null로 설정.
-            saller_u.recruitment_image= null;
         }
+
+        // if (files.image) {  //이미지파일이 있을경우 saller_u.recruitment_image에 업로드될 파일의 이름 저장.
+        //     saller_u.recruitment_image = path.basename(files.image.path);
+        // } else { //파일이 없을경우 image값은 null로 설정.
+        //     saller_u.recruitment_image= null;
+        // }
 
         Saller.saller_1(saller_u, function(err, result) {
             if(err) {
