@@ -211,6 +211,7 @@ router.post('/market/saller/:id/reply', function(req, res, next) {
 
 //셀러모집 상세보기
 router.get('/market/saller/:id', function(req, res, next) {
+    console.log(1234);
     var recruitment_idx = req.params.id;
     Saller.saller_4(recruitment_idx, function(err, results) {
         if(err) {

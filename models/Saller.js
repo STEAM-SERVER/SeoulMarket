@@ -106,6 +106,10 @@ function saller_4(recruitment_idx, callback) {
                 if (err) {
                     return callback(err);
                 }
+                //FIXME : 수정해야함
+                if(!result[0].recruitment_image == "") {
+                    result[0].recruitment_image = "http://localhost:3000/images/" + result[0].recruitment_image;
+                }
                 result_saller = result[0];
                 callback(null, result);
             });
