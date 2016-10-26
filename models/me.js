@@ -148,15 +148,14 @@ function marketEnrollment(info, callback) {
 
 //내가 좋아요한마켓보기
 function goodList(info, callback) {
-    var sql_select_main = "SELECT M.market_idx, M.market_address,  M.market_name, I.image_url, M.market_count, "+
-        "date_format(convert_tz(M.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') market_startdate, "+
-        "date_format(convert_tz(M.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_enddate, "+
-        "TO_DAYS(M.market_enddate)-TO_DAYS(NOW()) market_state, "+
-        "U.user_nickname, MhU.good_idx "+
-        "FROM Market M JOIN Image I ON (M.market_idx = I.market_idx) "+
-        "JOIN User U ON (U.user_idx = M.user_idx) "+
-        "JOIN Market_has_User MhU ON (MhU.market_idx = M.market_idx) "+
-        "WHERE I.image_type = 1 AND M.user_idx = ? ORDER BY MhU.good_idx DESC LIMIT ?, 10 ";
+    var sql_select_main = "SELECT mhu.good_idx, m.market_idx, m.market_address, m.market_name, i.image_url, m.market_count, u.user_nickname, "+
+                        "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') market_startdate, "+
+                        "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_endtdate, "+
+                        "TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state "+
+                        "FROM Market_has_User mhu JOIN Market m ON (mhu.market_idx = m.market_idx) "+
+                        "JOIN Image i ON (mhu.market_idx = i.market_idx) "+
+                        "JOIN User u ON (u.user_idx = m.user_idx) "+
+                        "WHERE mhu.user_idx = ? AND i.image_type = 1 ORDER BY market_idx DESC LIMIT ?, 10 ";
     dbPool.getConnection(function(err, dbConn) {
         if (err) {
             return callback(err);
