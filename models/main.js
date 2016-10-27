@@ -71,8 +71,8 @@ function search(search, callback){
     var sql = 'SELECT m.market_idx, m.market_address, '
         + state_sql
         + 'm.market_name, i.image_url, m.market_count, '
-        + 'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d %H:%i:%s") market_startdate, '
-        + 'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d %H:%i:%s") market_enddate '
+        + 'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '
+        + 'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate '
         + 'FROM Market m '
         + 'LEFT JOIN Image i ON m.market_idx = i.image_idx '
         + where_sql
@@ -101,7 +101,9 @@ function searchName(search, callback){
 
     var sql = 'SELECT m.market_idx, m.market_address, '
         + state_sql
-        + 'm.market_name, i.image_url, m.market_count, m.market_startdate, m.market_enddate '
+        + 'm.market_name, i.image_url, m.market_count, '
+        + 'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '
+        + 'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate '
         + 'FROM Market m '
         + 'LEFT JOIN Image i ON m.market_idx = i.image_idx '
         + where_sql
@@ -140,7 +142,7 @@ function market_detail(info, callback) {
     var sql_select_review = "SELECT r.review_idx, r.review_contents, r.review_img, u.user_nickname, " +
                             "date_format(convert_tz(r.review_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') review_uploadtime "+
                             "FROM Review r JOIN User u ON(r.user_idx = u.user_idx) "+
-                            "WHERE r.market_idx = ?";
+                            "WHERE r.market_idx = ? ORDER BY r.review_idx  DESC LIMIT ?, 10";
     dbPool.getConnection(function(err, dbConn) {
         if (err) {
             return callback(err);
@@ -186,7 +188,7 @@ function market_detail(info, callback) {
         }
 
         function market_review(callback){
-            dbConn.query(sql_select_review, [info.market_id], function(err, result) {
+            dbConn.query(sql_select_review, [info.market_id, info.currentPage], function(err, result) {
                 if(err) {
                     return callback(err);
                 }

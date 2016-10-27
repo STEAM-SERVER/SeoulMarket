@@ -22,6 +22,7 @@ router.get('/', function(req, res, next) {
 //마켓 상세보기
 router.get('/:id', function(req, res, next) {
     var info = {};
+    info.currentPage = (10*parseInt(req.query.currentPage)) || 0;
     info.market_id = req.params.id;
     if (!req.user) {
         info.user_id = 0;
