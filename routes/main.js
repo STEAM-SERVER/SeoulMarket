@@ -1,6 +1,8 @@
+var isAuthenticated = require('./common').isAuthenticated;
+
 var Main = require('../models/main');
 var formidable = require('formidable');
-
+var path = require('path');
 var express = require('express');
 var router = express.Router();
 
@@ -126,5 +128,46 @@ router.delete('/:market_idx', function (req, res, next) {
         });
     });
 });
+
+// 마켓 후기 등록
+router.post('/', isAuthenticated , function (req, res, next) {
+
+
+    var review = {};
+
+    //파일이 존재할 경우
+    var form = new formidable.IncomingForm();
+    form.uploadDir = path.join(__dirname, '../uploads/images');
+    form.keepExtensions = true; // 업로드할 파일의 확장자를 유지시킬경우 true
+    form.multiples = false; // false 옵션을 주었기때문에, 단일 사진만 허용.
+
+    form.parse(req, function (err, fields, files) {
+        //fields 는 업로드 파일이 아닌 다른 옵션들
+        //files는 파일
+        if (err) {
+            return next(err);
+        }
+        review.contents = fields.review_contents;
+        review.market_idx = fields.market_idx;
+        review.user_idx = req.user.id;
+
+        if (!files['image']) {
+            review.image = "";
+        } else {
+            review.image = path.basename(files.image.path);
+        }
+        Main.write(review, function(err, result) {
+            if(err) {
+                return next(err);
+            }
+            res.send({
+                result : "Success"
+            });
+        });
+    });
+
+});
+
+
 
 module.exports = router;
