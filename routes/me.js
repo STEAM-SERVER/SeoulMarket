@@ -1,3 +1,5 @@
+var isAuthenticated = require('./common').isAuthenticated;
+
 var Me = require('../models/me');
 var Saller = require('../models/Saller');
 
@@ -36,6 +38,8 @@ router.get('/', function(req, res, next) {
                 }
             })
         });
+    } else{
+        next(new Error('404'));
     }
 });
 
@@ -272,6 +276,24 @@ router.get('/saller', function(req, res, next){
             result : reslut
         });
     });
+});
+
+//셀러 모집글 삭제
+//로그인 필요
+router.delete('/market/saller/:id', isAuthenticated,function (req,res, next){
+    var info ={};
+    info.user_idx = req.user.id;
+    info.recruitment_idx = req.params.id;
+
+    Me.del(info, function (err, result) {
+        if(err){
+            return next(err);
+        }
+        res.send({
+            result : "Success"
+        })
+    })
+
 });
 
 module.exports = router;
