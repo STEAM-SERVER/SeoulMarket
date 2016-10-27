@@ -18,6 +18,19 @@ function nicknameCheck(nickname, callback) {
     });
 }
 
+function check(user_idx, callback) {
+    var sql_select_nickname = "SELECT user_nickname FROM User WHERE user_idx = ?";
+    dbPool.getConnection(function(err, dbConn) {
+        dbConn.query(sql_select_nickname, [user_idx], function(err, result) {
+            dbConn.release();
+            if(err) {
+                return callback(err);
+            }
+            callback(null, result[0]);
+        });
+    });
+}
+
 //닉네임 저장함수
 function nickname(user, callback) {
     var sql_insert_nickname = "UPDATE User SET user_nickname = ? WHERE user_idx = ?";
@@ -32,7 +45,7 @@ function nickname(user, callback) {
     });
 }
 
-//마켓등록함수 --> 쿼리는 안복잡
+//마켓등록 --> 쿼리는 안복잡
 function marketUploads(marketinfo ,callback) {
     var sql_insert_market="INSERT INTO " +
                            "Market(market_name, user_idx, market_address, market_host, market_contents, market_tag, market_point, market_tell, market_startdate, market_enddate, market_url) " +
@@ -97,6 +110,61 @@ function marketUploads(marketinfo ,callback) {
                         return callback(err);
                     }
                     callback(null, 'img type update 성공!');
+                });
+            }
+        });
+    });
+}
+
+//마켓삭제
+function marketDel(info, callback) {
+    var sql_del_good ="DELETE FROM Market_has_User where market_idx = ? ";
+    var sql_del_img = "DELETE FROM Image WHERE market_idx = ?";
+    var sql_del_market = "DELETE FROM Market WHERE market_idx = ? AND user_idx = ?";
+    dbPool.getConnection(function(err, dbConn) {
+        if (err) {
+            return callback(err);
+        }
+        dbConn.beginTransaction(function(err) {
+            if (err) {
+                return callback(err);
+            }
+            async.series([del_good, del_img, del_market], function(err, results) {
+                if (err) {
+                    return dbConn.rollback(function() { //중간에 에러날경우 롤백!
+                        dbConn.release();
+                        callback(err);
+                    });
+                }
+                dbConn.commit(function() {  //전부다 성공할경우 commit
+                    dbConn.release();
+                    callback(null, results);
+                });
+            });
+
+            function del_good(callback) { //좋아요삭제
+                dbConn.query(sql_del_good, [info.market_idx], function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, 'del good');
+                });
+            }
+            function del_img(callback) {  //Image 테이블 삭제
+                dbConn.query(sql_del_img, [info.market_idx], function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    //image 삭제해야함!
+                    callback(null, 'del img');
+                });
+            }
+            function del_market(callback) {
+                dbConn.query(sql_del_market, [info.market_idx, info.user_idx], function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, 'del market');
                 });
             }
         });
@@ -194,6 +262,8 @@ function goodList(info, callback) {
 
 module.exports.nickname = nickname;
 module.exports.nicknameCheck = nicknameCheck;
+module.exports.check = check;
 module.exports.marketUploads = marketUploads;
 module.exports.marketEnrollment = marketEnrollment;
 module.exports.goodList = goodList;
+module.exports.marketDel = marketDel;

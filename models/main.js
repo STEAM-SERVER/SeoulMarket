@@ -7,7 +7,7 @@ function list(currentPage, callback) {
     var sql_select_main = "SELECT M.market_idx, M.market_address,  M.market_name, "+
                           "I.image_url, I.image_type, TO_DAYS(M.market_enddate)-TO_DAYS(NOW()) market_state " +
                           "FROM Market M LEFT JOIN Image I ON (M.market_idx = I.market_idx) " +
-                          "WHERE I.image_type = 1 LIMIT ?, 10 ";
+                          "WHERE I.image_type = 1 ORDER BY market_count LIMIT ?, 10 ";
 
     dbPool.getConnection(function(err, dbConn) {
         if (err) {

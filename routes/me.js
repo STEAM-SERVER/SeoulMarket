@@ -24,6 +24,18 @@ router.get('/', function(req, res, next) {
                 }
             });
         });
+    } else if(req.query.action === 'nickname') {
+        var user_idx=req.user.id;
+        Me.check(user_idx, function(err, result) {
+            if(err) {
+                return next(err);
+            }
+            res.send({
+                result : {
+                    message : result
+                }
+            })
+        });
     }
 });
 
@@ -69,6 +81,9 @@ router.post('/market', function(req, res, next) {
         market.market_enddate = fields.market_enddate;
         market.market_url = fields.market_url;
 
+        market.market_starttime = fields.market_starttime;
+        market.market_endtime = fields.market_endtime;
+
         if (files.image instanceof Array) {  //사진 여러장올릴경우
             async.each(files.image, function(item, done) {
                 var filename = path.basename(item.path);
@@ -90,9 +105,27 @@ router.post('/market', function(req, res, next) {
             }
             res.send({
                 result : {
-                    messgae : "Success"
+                    message : "Success"
                 }
             });
+        });
+    });
+});
+
+//마켓삭제
+router.delete('/market/:market_id', function(req, res, next) {
+    var info = {};
+    info.user_idx = req.user.id;
+    info.market_idx = req.params.market_id;
+
+    Me.marketDel(info, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.send({
+            result : {
+                message : "Success"
+            }
         });
     });
 });
@@ -171,7 +204,9 @@ router.post('/market/saller', function(req, res, next) {
                 return next(err);
             }
             res.send({
-                result : "Success"
+                result : {
+                    message : "Success"
+                }
             });
         });
     });
@@ -211,7 +246,6 @@ router.post('/market/saller/:id/reply', function(req, res, next) {
 
 //셀러모집 상세보기
 router.get('/market/saller/:id', function(req, res, next) {
-    console.log(1234);
     var recruitment_idx = req.params.id;
     Saller.saller_4(recruitment_idx, function(err, results) {
         if(err) {
