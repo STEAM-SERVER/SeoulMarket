@@ -259,7 +259,40 @@ function goodList(info, callback) {
     });
 }
 
+//샐러 모집 글삭제
+function del(info,callback) {
+    var sql = 'DELETE FROM Recruitment WHERE recruitment_idx = ?';
+    dbPool.getConnection(function (err, dbConn) {
+        dbConn.release();
+        if (err){
+            return callback(err);
+        }
+        dbConn.query(sql, [info.recruitment_idx],function (err, result) {
+            if (err) {
+                return callback(err);
+            }
+            callback(null,result);
+        });
+    });
+    /*
 
+     dbPool.getConnection(function(err, dbConn) {
+     dbConn.release();
+     if(err) {
+     return callback(err);
+     }
+     dbConn.query(sql, [review.contents, review.image, review.market_idx, review.user_idx], function (error, result) {
+     if(error) {
+     return callback(error);
+     }
+     callback(null, result);
+     });
+     });
+    */
+    
+}
+
+module.exports.del = del;
 module.exports.nickname = nickname;
 module.exports.nicknameCheck = nicknameCheck;
 module.exports.check = check;
