@@ -98,7 +98,9 @@ router.post('/market', function(req, res, next) {
                 }
             });
         } else if (!files['image']) { //사진이 없을경우
-            //없을경우 코드 수정.
+            return res.status(404).send({
+                error: 'Fail'
+            });
         } else { //사진 한장일경우
             var filename = path.basename(files.image.path);
             market.imgPath.push(filename);
@@ -196,12 +198,6 @@ router.post('/market/saller', function(req, res, next) {
         } else {
             saller_u.recruitment_image = path.basename(files.image.path);
         }
-
-        // if (files.image) {  //이미지파일이 있을경우 saller_u.recruitment_image에 업로드될 파일의 이름 저장.
-        //     saller_u.recruitment_image = path.basename(files.image.path);
-        // } else { //파일이 없을경우 image값은 null로 설정.
-        //     saller_u.recruitment_image= null;
-        // }
 
         Saller.saller_1(saller_u, function(err, result) {
             if(err) {

@@ -40,60 +40,87 @@ function list(currentPage, callback) {
 }
 
 // 위치, 날짜검색
-//FIXME : 수정해야함(쿼리) - WHERE Image.image_type = 1 조건걸어줘야함!!!
 function search(search, callback){
+    var sql_select_address = "SELECT m.market_idx, m.market_address, TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, "+
+        "m.market_name, i.image_url, m.market_count, "+
+        'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '+
+        'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate ' +
+        "FROM Market m "+
+        "LEFT JOIN Image i ON m.market_idx = i.market_idx "+
+        "WHERE match(market_address) against(?) AND i.image_type=1 LIMIT ?, 10";
 
-    var where_sql = '';
-    // var sql_parameter = [];
+    var sql_select_date = "SELECT m.market_idx, m.market_address, TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, "+
+        "m.market_name, i.image_url, m.market_count, "+
+        'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '+
+        'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate ' +
+        "FROM Market m "+
+        "LEFT JOIN Image i ON m.market_idx = i.market_idx "+
+        "WHERE (((date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d')  <= ? AND date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') >= ?) "+
+        "OR (date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') <= ? AND date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') >= ?)) "+
+        "OR (date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d')  >= ? AND date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') <= ?) "+
+        "OR (date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d')  >= ? AND date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') <= ?)) LIMIT ?, 10";
 
-    // 주소 특정검색 -> 날짜 전체
-    if (search.address != '*'){
-        where_sql = where_sql +`WHERE m.market_address REGEXP '${search.address}' `;
-        // sql_parameter.push(search.address);
-    }
+    var sql_select_address_date = "SELECT m.market_idx, m.market_address, TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, "+
+    "m.market_name, i.image_url, m.market_count, "+
+    'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '+
+    'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate ' +
+    "FROM Market m "+
+    "LEFT JOIN Image i ON m.market_idx = i.market_idx "+
+    "WHERE (((date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d')  <= ? AND date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') >= ?) "+
+    "OR (date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') <= ? AND date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') >= ?)) "+
+    "OR (date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d')  >= ? AND date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') <= ?) "+
+    "OR (date_format(convert_tz(market_enddate, '+00:00', '+00:00'), '%Y-%m-%d')  >= ? AND date_format(convert_tz(market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') <= ?)) "+
+    "AND match(market_address) against(?) AND i.image_type=1 LIMIT ?, 10";
 
-    if (search.startdate != '*'){
-        if (search.enddate != '*'){
-            where_sql = where_sql +`AND (m.market_startdate ='${search.startdate}' and m.market_enddate ='${search.enddate}') `;
-            // sql_parameter.push(search.startdate);
-            // sql_parameter.push(search.enddate);
-        }
-        else{
-            where_sql = where_sql +`AND (m.market_startdate ='${search.startdate}') `;
-            // sql_parameter.push(search.startdate);
-        }
-    }
-
-    // var where_sql =  "WHERE m.market_address REGEXP '" + search.address + "' ";
-    // where_sql = `WHERE m.market_address REGEXP '${search.address}'`;
-    var state_sql = 'TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, ';
-
-    var sql = 'SELECT m.market_idx, m.market_address, '
-        + state_sql
-        + 'm.market_name, i.image_url, m.market_count, '
-        + 'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '
-        + 'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate '
-        + 'FROM Market m '
-        + 'LEFT JOIN Image i ON m.market_idx = i.market_idx '
-        + where_sql
-        + 'LIMIT ?, 10 ';
 
     dbPool.getConnection(function(err, dbConn) {
-        if(err) {
+        if (err) {
             return callback(err);
         }
-        dbConn.query(sql, [search.currentPage], function (error, result) {
-            dbConn.release();
-            if(error) {
-                return callback(error);
-            }
-            callback(null, result);
-        });
+
+        if (search.address != '*' && search.startdate == '*' && search.enddate == '*') {  // 주소만 검색
+            dbConn.query(sql_select_address, [search.address, search.currentPage], function(err, result) {
+                dbConn.release();
+                if (err) {
+                    return callback(err);
+                }
+                result.forEach((row)=> {
+                    row.image_url = "http://localhost:3000/images/" + row.image_url
+                });
+                callback(null, result);
+            });
+        } else if (search.address == '*' && search.startdate != '*' && search.enddate != '*'){ //날짜만
+            dbConn.query(sql_select_date, [search.enddate, search.startdate, search.enddate, search.startdate,
+                search.enddate, search.startdate, search.enddate, search.startdate, search.currentPage], function(err, result) {
+                dbConn.release();
+                if (err) {
+                    return callback(err);
+                }
+                result.forEach((row)=> {
+                    row.image_url = "http://localhost:3000/images/" + row.image_url
+                });
+                callback(null, result);
+            });
+        } else if (search.address != '*' && search.startdate != '*' && search.enddate != '*') { //날짜 and 주소
+            dbConn.query(sql_select_address_date, [search.enddate, search.startdate, search.enddate, search.startdate,
+                search.enddate, search.startdate, search.enddate, search.startdate, search.address, search.currentPage], function(err, result) {
+                dbConn.release();
+                if (err) {
+                    return callback(err);
+                }
+                result.forEach((row)=> {
+                    row.image_url = "http://localhost:3000/images/" + row.image_url
+                });
+                callback(null, result);
+            });
+        } else {
+            return callback(new Error('err'));
+        }
     });
 }
 
+
 //이름검색
-//FIXME : 수정해야함(쿼리)
 function searchName(search, callback){
     var sql =
         'SELECT m.market_idx, m.market_address, TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, ' +
@@ -314,7 +341,6 @@ function write(review, callback) {
         });
     });
 }
-
 
 module.exports.write = write;
 

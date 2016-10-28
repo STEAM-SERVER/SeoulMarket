@@ -1,4 +1,3 @@
-var isAuthenticated = require('./common').isAuthenticated;
 
 var Main = require('../models/main');
 var formidable = require('formidable');
@@ -53,6 +52,8 @@ router.get('/:id', function(req, res, next) {
     });
 });
 
+
+
 //위치, 날짜검색
 router.get('/search/:address/:startdate/:enddate', function(req,res,next){
     var currentPage = (10*parseInt(req.query.currentPage)) || 0;
@@ -69,7 +70,7 @@ router.get('/search/:address/:startdate/:enddate', function(req,res,next){
         if(err){
             return next(err);
         }
-        res.send({ // 값이 안담겨
+        res.send({
             result : result
         });
     });
@@ -130,7 +131,7 @@ router.delete('/:market_idx', function (req, res, next) {
 });
 
 // 마켓 후기 등록
-router.post('/', isAuthenticated , function (req, res, next) {
+router.post('/', function (req, res, next) {
 
 
     var review = {};
@@ -161,7 +162,9 @@ router.post('/', isAuthenticated , function (req, res, next) {
                 return next(err);
             }
             res.send({
-                result : "Success"
+                result : {
+                    message : "Success"
+                }
             });
         });
     });
