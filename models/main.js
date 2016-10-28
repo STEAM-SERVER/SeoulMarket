@@ -7,7 +7,7 @@ function list(currentPage, callback) {
     var sql_select_main = "SELECT M.market_idx, M.market_address,  M.market_name, "+
                           "I.image_url, I.image_type, TO_DAYS(M.market_enddate)-TO_DAYS(NOW()) market_state " +
                           "FROM Market M LEFT JOIN Image I ON (M.market_idx = I.market_idx) " +
-                          "WHERE I.image_type = 1 ORDER BY market_count LIMIT ?, 10 ";
+                          "WHERE I.image_type = 1 ORDER BY market_count DESC LIMIT ?, 10 ";
 
     dbPool.getConnection(function(err, dbConn) {
         if (err) {
@@ -40,7 +40,7 @@ function list(currentPage, callback) {
 }
 
 // 위치, 날짜검색
-//FIXME : 수정해야함(쿼리)
+//FIXME : 수정해야함(쿼리) - WHERE Image.image_type = 1 조건걸어줘야함!!!
 function search(search, callback){
 
     var where_sql = '';
@@ -74,7 +74,7 @@ function search(search, callback){
         + 'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '
         + 'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate '
         + 'FROM Market m '
-        + 'LEFT JOIN Image i ON m.market_idx = i.image_idx '
+        + 'LEFT JOIN Image i ON m.market_idx = i.market_idx '
         + where_sql
         + 'LIMIT ?, 10 ';
 
@@ -95,26 +95,22 @@ function search(search, callback){
 //이름검색
 //FIXME : 수정해야함(쿼리)
 function searchName(search, callback){
-
-    var where_sql = `WHERE m.market_name REGEXP '${search.name}'`;
-    var state_sql = 'TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, ';
-
-    var sql = 'SELECT m.market_idx, m.market_address, '
-        + state_sql
-        + 'm.market_name, i.image_url, m.market_count, '
-        + 'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, '
-        + 'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate '
-        + 'FROM Market m '
-        + 'LEFT JOIN Image i ON m.market_idx = i.image_idx '
-        + where_sql
-        + 'LIMIT ?, 10 ';
+    var sql =
+        'SELECT m.market_idx, m.market_address, TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, ' +
+        'm.market_name, i.image_url, m.market_count, ' +
+        'date_format(convert_tz(m.market_startdate, "+00:00", "+00:00"), "%Y-%m-%d") market_startdate, ' +
+        'date_format(convert_tz(m.market_enddate, "+00:00", "+00:00"), "%Y-%m-%d") market_enddate ' +
+        'FROM Market m ' +
+        'LEFT JOIN Image i ON m.market_idx = i.market_idx ' +
+        'WHERE i.image_type = 1 AND m.market_name REGEXP ? ' +
+        'LIMIT ?, 10 ';
 
     dbPool.getConnection(function(err, dbConn) {
         dbConn.release();
         if(err) {
             return callback(err);
         }
-        dbConn.query(sql, [search.currentPage], function (error, result) {
+        dbConn.query(sql, [search.name, search.currentPage], function (error, result) {
             if(error) {
                 return callback(error);
             }
@@ -126,12 +122,12 @@ function searchName(search, callback){
 
 //상세정보
 function market_detail(info, callback) {
-    var sql_select_market_detail = "SELECT m.market_idx, u.user_nickname, m.market_host, m.market_address, m.market_tag, "+
+    var sql_select_market_detail = "SELECT m.market_idx, u.user_nickname, m.market_host, m.market_address, m.market_tag, m.market_tell"+
                                     "TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state,"+
                                     "X(market_point) market_latitude, Y(market_point) market_longitude, "+
                                     "m.market_name, m.market_url, m.market_count, " +
-                                    "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%H:%i:%s') market_openTime, "+
-                                    "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%H:%i:%s') market_endTime, "+
+                                    "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%H:%i') market_openTime, "+
+                                    "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%H:%i') market_endTime, "+
                                     "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%Y-%m-%d') market_startdate, " +
                                     "date_format(convert_tz(m.market_enddate, '+00:00', '+00:00'), '%Y-%m-%d') market_enddate, " +
                                     "m.market_contents, good.good_idx 'favorite'"+
@@ -140,7 +136,7 @@ function market_detail(info, callback) {
                                     "WHERE m.market_idx=?";
     var sql_select_img = "SELECT image_url, image_type FROM Image i WHERE market_idx = ?";
     var sql_select_review = "SELECT r.review_idx, r.review_contents, r.review_img, u.user_nickname, " +
-                            "date_format(convert_tz(r.review_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i:%s') review_uploadtime "+
+                            "date_format(convert_tz(r.review_uploadtime, '+00:00', '+00:00'), '%Y-%m-%d %H:%i') review_uploadtime "+
                             "FROM Review r JOIN User u ON(r.user_idx = u.user_idx) "+
                             "WHERE r.market_idx = ? ORDER BY r.review_idx  DESC LIMIT ?, 10";
     dbPool.getConnection(function(err, dbConn) {
