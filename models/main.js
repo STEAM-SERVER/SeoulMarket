@@ -149,8 +149,8 @@ function searchName(search, callback){
 
 //상세정보
 function market_detail(info, callback) {
-    var sql_select_market_detail = "SELECT m.market_idx, u.user_nickname, m.market_host, m.market_address, m.market_tag, m.market_tell"+
-                                    "TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state,"+
+    var sql_select_market_detail = "SELECT m.market_idx, u.user_nickname, m.market_host, m.market_address, m.market_tag, m.market_tell, "+
+                                    "TO_DAYS(m.market_enddate)-TO_DAYS(NOW()) market_state, "+
                                     "X(market_point) market_latitude, Y(market_point) market_longitude, "+
                                     "m.market_name, m.market_url, m.market_count, " +
                                     "date_format(convert_tz(m.market_startdate, '+00:00', '+00:00'), '%H:%i') market_openTime, "+
