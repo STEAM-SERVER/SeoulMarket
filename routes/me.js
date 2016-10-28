@@ -286,8 +286,10 @@ router.delete('/market/saller/:id', isAuthenticated,function (req,res, next){
             return next(err);
         }
         res.send({
-            result : "Success"
-        })
+            result : {
+                message : "Success"
+            }
+        });
     })
 
 });
